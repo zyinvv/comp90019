@@ -4,7 +4,7 @@ import nltk
 
 
 def sent1():
-    print(features)
+    
     text = 'the phone has good camera. '
     score = 0
     nlp = StanfordCoreNLP(r'D:\\stanford-corenlp-full-2018-10-05')
@@ -18,9 +18,7 @@ def sent1():
     for d in dep:
         try:
             if d[0].lower() != "root":
-                #(a,b,c) = d
-                string= d[0] +", "+ tokens[d[1]].lower() +", "+ tokens[d[2]].lower()
-                print(string)
+               
                 if tokens[d[1]].lower() in features and tokens[d[2]].lower() in sent_words.keys():
                     if sent_words[tokens[d[2]].lower()] == "-1":
                         score += -1
@@ -31,7 +29,7 @@ def sent1():
                         score += -1
                     else:
                         score += 1
-                print "o"
+                
         except:
             continue
 
@@ -69,7 +67,7 @@ def stan(text):
 
     tokens = nlp.word_tokenize(text)
 
-    print(tokens)
+    #print(tokens)
 
     dep = nlp.dependency_parse(text)
     print(dep)
@@ -108,7 +106,7 @@ def get_sent():
         try:
             brand = brand.rstrip("\n")
             file = open("brands_tweets\\" + brand + ".json")
-            print(brand)
+            #print(brand)
             tweets = file.readline()
             while (tweets):
                 tweet = json.loads(tweets)
@@ -116,7 +114,7 @@ def get_sent():
 
                 for feature in features:
                     if feature.lower() in text.lower():
-                        print(text)
+                        #print(text)
 
                         score = stan(text)
                         tweet["sent"] = score
