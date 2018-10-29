@@ -1,19 +1,26 @@
 from stanfordcorenlp import StanfordCoreNLP
 import json
-
+import nltk
 
 
 def sent1():
-    text = 'Guangdong University of Foreign Studies is located in Guangzhou. 64GB is good in a full range of international cooperation and exchanges in education. '
+    print(features)
+    text = 'the phone has good camera. '
     score = 0
     nlp = StanfordCoreNLP(r'D:\\stanford-corenlp-full-2018-10-05')
 
     tokens = nlp.word_tokenize(text)
+    print(tokens)
 
     dep = nlp.dependency_parse(text)
+    print(dep)
+
     for d in dep:
         try:
-            if d[0] != "root":
+            if d[0].lower() != "root":
+                #(a,b,c) = d
+                string= d[0] +", "+ tokens[d[1]].lower() +", "+ tokens[d[2]].lower()
+                print(string)
                 if tokens[d[1]].lower() in features and tokens[d[2]].lower() in sent_words.keys():
                     if sent_words[tokens[d[2]].lower()] == "-1":
                         score += -1
@@ -24,18 +31,18 @@ def sent1():
                         score += -1
                     else:
                         score += 1
-                print(score)
-
-
+                print "o"
         except:
             continue
+
+
     print score
     nlp.close()
 
 
 def get_features():
     feature = []
-    file = open("internal.txt", "r")
+    file = open("camera.txt", "r")
     f = file.readline()
     while(f):
         f = f.rstrip("\n")
@@ -57,12 +64,15 @@ sent_words = get_sents()
 
 def stan(text):
 
-    score =0
+    score = 0
     nlp = StanfordCoreNLP(r'D:\\stanford-corenlp-full-2018-10-05')
 
     tokens = nlp.word_tokenize(text)
 
+    print(tokens)
+
     dep = nlp.dependency_parse(text)
+    print(dep)
     for d in dep:
         try:
             if d[0] != "root":
@@ -76,12 +86,13 @@ def stan(text):
                         score += -1
                     else:
                         score += 1
-                print(score)
+                print score
         except:
             continue
+
+
     nlp.close()
     return score
-
 
 def get_brands():
     f = open("brands.txt")
@@ -95,25 +106,35 @@ def get_brands():
 def get_sent():
     for brand in get_brands():
         try:
+            brand = brand.rstrip("\n")
             file = open("brands_tweets\\" + brand + ".json")
             print(brand)
             tweets = file.readline()
             while (tweets):
                 tweet = json.loads(tweets)
                 text = tweet["text"]
+
                 for feature in features:
-                    if feature in text.lower():
+                    if feature.lower() in text.lower():
+                        print(text)
+
                         score = stan(text)
                         tweet["sent"] = score
-                        print(score)
+
 
                         file_sent = open("brands_tweets\\" + brand + "_in_sent.json", "a")
                         file_sent.write(json.dumps(tweet) + "\n")
                         file_sent.close()
                         break
+
                 tweets = file.readline()
+            file.close()
         except:
             continue
+
+
+
+
     print("end")
 
 
@@ -121,5 +142,6 @@ def get_sent():
 
 
 
+sent1()
 
-get_sent()
+#get_sent()
