@@ -142,6 +142,6 @@ def get_sent():
 
 
 
-sent1()
+#sent1()
 
-#get_sent()
+get_sent()
