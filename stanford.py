@@ -1,73 +1,120 @@
 from stanfordcorenlp import StanfordCoreNLP
 import json
-from nltk.parse.stanford import StanfordParser, StanfordDependencyParser
-def sent():
+
+
+
+def sent1():
+    text = 'Guangdong University of Foreign Studies is located in Guangzhou. 64GB is good in a full range of international cooperation and exchanges in education. '
+    score = 0
     nlp = StanfordCoreNLP(r'D:\\stanford-corenlp-full-2018-10-05')
 
+    tokens = nlp.word_tokenize(text)
 
-    text = 'Guangdong University of Foreign Studies is located in Guangzhou. ' \
-           'GDUFS is active in a full range of international cooperation and exchanges in education. '
-    props = {'annotators': 'sentiment'}
+    dep = nlp.dependency_parse(text)
+    for d in dep:
+        try:
+            if d[0] != "root":
+                if tokens[d[1]].lower() in features and tokens[d[2]].lower() in sent_words.keys():
+                    if sent_words[tokens[d[2]].lower()] == "-1":
+                        score += -1
+                    else:
+                        score += 1
+                elif tokens[d[2]].lower() in features and tokens[d[1]].lower() in sent_words.keys():
+                    if sent_words[tokens[d[1]].lower()] == "-1":
+                        score += -1
+                    else:
+                        score += 1
+                print(score)
 
-    print nlp.annotate(text, properties=props)
 
-
-def a():
-    eng_parser = StanfordDependencyParser(r"stanfordNLTK\jar\stanford-parser.jar",
-                                          r"stanfordNLTK\jar\stanford-parser-3.6.0-models.jar",
-                                          r"stanfordNLTK\jar\classifiers\englishPCFG.ser.gz")
-
-    res = list(eng_parser.parse("the quick brown fox jumps over the lazy dog".split()))
-    for row in res[0].triples():
-        print(row)
-
-    nlp = StanfordCoreNLP(r'D:\\stanford-corenlp-full-2018-10-05')
-
-    sentence = 'Guangdong University of Foreign Studies is located in Guangzhou.'
-    print 'Tokenize:', nlp.word_tokenize(sentence)
-    print 'Part of Speech:', nlp.pos_tag(sentence)
-    print 'Named Entities:', nlp.ner(sentence)
-    print 'Constituency Parsing:', nlp.parse(sentence)
-    print 'Dependency Parsing:', nlp.dependency_parse(sentence)
-
+        except:
+            continue
+    print score
     nlp.close()
-    f = open("brands_tweets\\iphone.json")
-    #file = open("brands_tweets\\iphone2.json", "a")
-    lines = f.readline()
-    while(lines):
-        line = json.loads(lines)
-        text = line["text"]
-        testimonial = StanfordCoreNLP(text)
-        line["sent"] = testimonial.sentiment
-        f1 = open("internal.txt", "r")
-        ins = f1.readline()
-        sum = 0
-        m = 0
 
-        while (ins):
 
-            ins1 = ins.split(" ")
-            n = len(ins1)
-            # print(ins1[n-1])
-            # print(str(n))
-            ins = ins.rstrip("\n")
-            ins = ins.rstrip(ins1[n - 1])
-            ins = ins.rstrip(" ")
-            # print(ins)
-            if ins.lower() in text.lower():
-                print(ins.lower())
-                sum += float(ins1[n - 1])
-                m += 1
-                line["in_sent"] = sum / m
-            ins = f1.readline()
-        if m > 0:
-            print(str(m))
-            file_sent = open("brands_tweets\\iphone1_in_sent.json", "a")
-            file_sent.write(json.dumps(line) + "\n")
-            file_sent.close()
-        #file.write(json.dumps(line)+"\n")
-        lines = f.readline()
-    f.close()
-    #file.close()
+def get_features():
+    feature = []
+    file = open("internal.txt", "r")
+    f = file.readline()
+    while(f):
+        f = f.rstrip("\n")
+        feature.append(f.lower())
+        f = file.readline()
+    return feature
 
-sent()
+def get_sents():
+    sents = {}
+    file = open("pos_neg.txt", "r")
+    s = file.readlines()
+    for w in s:
+        word, score = w.split()
+        sents[word.lower()] = score
+    return sents
+
+features = get_features()
+sent_words = get_sents()
+
+def stan(text):
+
+    score =0
+    nlp = StanfordCoreNLP(r'D:\\stanford-corenlp-full-2018-10-05')
+
+    tokens = nlp.word_tokenize(text)
+
+    dep = nlp.dependency_parse(text)
+    for d in dep:
+        try:
+            if d[0] != "root":
+                if tokens[d[1]].lower() in features and tokens[d[2]].lower() in sent_words.keys():
+                    if sent_words[tokens[d[2]].lower()] == "-1":
+                        score += -1
+                    else:
+                        score += 1
+                elif tokens[d[2]].lower() in features and tokens[d[1]].lower() in sent_words.keys():
+                    if sent_words[tokens[d[1]].lower()] == "-1":
+                        score += -1
+                    else:
+                        score += 1
+                print(score)
+        except:
+            continue
+    nlp.close()
+    return score
+
+
+def get_brands():
+    f = open("brands.txt")
+    brands = []
+    brand = f.readline()
+    while (brand):
+        brands.append(brand.rstrip("\n"))
+        brand = f.readline()
+    return brands
+
+def get_sent():
+    for brand in get_brands():
+        try:
+            file = open("brands_tweets\\" + brand + ".json")
+            print(brand)
+            tweets = file.readline()
+            while (tweets):
+                tweet = json.loads(tweets)
+                text = tweet["text"]
+                score = stan(text)
+                tweet["sent"] = score
+                print(score)
+                file_sent = open("brands_tweets\\" + brand + "_in_sent.json", "a")
+                file_sent.write(json.dumps(tweet) + "\n")
+                file_sent.close()
+        except:
+            continue
+    print("end")
+
+
+
+
+
+
+
+get_sent()
